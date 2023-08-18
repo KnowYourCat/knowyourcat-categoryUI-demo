@@ -7,6 +7,7 @@ import {
 } from "wagmi";
 import moment from "moment";
 import Image from "next/image";
+import { ConnectKitButton } from "connectkit";
 import styles from "../styles/BABTokenWeekGate.module.css";
 import iconOk from "../images/icon_ok.svg";
 import iconPending from "../images/icon_pending.svg";
@@ -59,14 +60,14 @@ const getDateFromNow = (byChainIds) => {
   return moment.unix(timestamp).fromNow();
 };
 
-function BABTokenWeekGate({ address, loading, setLoading }) {
+function BABTokenWeekGate({ checkAddress, loading, setLoading }) {
   const [categoryData, setCategoryData] = useState(skeletonData);
   const [syncRequestData, setSyncRequestData] = useState(null);
   const [error, setError] = useState(null);
   const [notify, setNotify] = useState(null);
   const [isSync, setIsSync] = useState(null);
 
-  const { isConnected } = useAccount();
+  const { isConnected, address } = useAccount();
   const { chain } = useNetwork();
 
   const isNoTrait = useMemo(() => {
@@ -171,12 +172,12 @@ function BABTokenWeekGate({ address, loading, setLoading }) {
     <div className={styles.stepper}>
       <div
         className={
-          isNoTrait
+          !isConnected
             ? styles.stepper_thumb_active
             : styles.stepper_thumb_inactive
         }
       >
-        {isNoTrait ? (
+        {!isConnected ? (
           "1"
         ) : (
           <Image src={iconCheckMark} alt={"icon check mark"} />
@@ -185,14 +186,60 @@ function BABTokenWeekGate({ address, loading, setLoading }) {
       <div className={styles.connector}></div>
       <div
         className={
-          !isNoTrait
+          isConnected && isNoTrait
             ? styles.stepper_thumb_active
             : styles.stepper_thumb_inactive
         }
       >
-        {isNoSync ? "2" : <Image src={iconCheckMark} alt={"icon check mark"} />}
+        {isConnected && !isNoTrait ? (
+          <Image src={iconCheckMark} alt={"icon check mark"} />
+        ) : (
+          "2"
+        )}
+      </div>
+      <div className={styles.connector}></div>
+      <div
+        className={
+          isConnected && !isNoTrait && isNoSync
+            ? styles.stepper_thumb_active
+            : styles.stepper_thumb_inactive
+        }
+      >
+        {isConnected && !isNoTrait && !isNoSync ? (
+          <Image src={iconCheckMark} alt={"icon check mark"} />
+        ) : (
+          "3"
+        )}
       </div>
     </div>
+  );
+
+  const getRenderTitle = () => (
+    <h1 className={styles.title}>
+      {!isConnected ? (
+        <>
+          <span>Connect your wallet and follow the steps below</span>
+          <br />
+          <span>to access the advanced limits.</span>
+        </>
+      ) : isNoTrait ? (
+        <>
+          <span>You don't have any traits.</span>
+          <br />
+          <span>Follow the link and get traits.</span>
+        </>
+      ) : isNoSync ? (
+        <>
+          <span>Your traits need to sync.</span>
+        </>
+      ) : (
+        <>
+          <span>You have synced traits</span>
+          <br />
+          <span>and you have access to advanced restrictions.</span>
+        </>
+      )}
+    </h1>
   );
 
   const getRenderProviderButtons = (provider) => (
@@ -262,6 +309,17 @@ function BABTokenWeekGate({ address, loading, setLoading }) {
     </div>
   );
 
+  const getRenderKyCatLink = () => (
+    <a
+      href={`https://knowyourcat.id/address/${address}`}
+      className={styles.link}
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      You can also mint your <span>Cheshire NFT</span>
+    </a>
+  );
+
   useEffect(() => {
     if (isLoading) {
       setNotify("Waiting for request execution...");
@@ -322,37 +380,23 @@ function BABTokenWeekGate({ address, loading, setLoading }) {
 
   return (
     <div>
-      {categoryData?.data?.providers?.length > 0 && (
-        <div className={styles.container}>
-          <>
-            {!categoryData?.result ? (
-              <h1 className={styles.title}>
-                Follow the steps below to access the advanced limits.
-              </h1>
-            ) : (
-              <p>
-                You have synced your traits and you have access to advanced
-                restrictions
-              </p>
-            )}
-            <div className={styles.main}>
-              {!categoryData?.result && isNoSync && getRenderStepper()}
-              {getRenderProvider()}
+      {/* {categoryData?.data?.providers?.length > 0 && ( */}
+      <div className={styles.container}>
+        {getRenderTitle()}
+        <div className={styles.main}>
+          {/* {!categoryData?.result && isNoSync && getRenderStepper()} */}
+          {getRenderStepper()}
+          <div className={styles.right_section}>
+            <div className={styles.wallet_connect}>
+              <ConnectKitButton />
             </div>
-            {!isNoTrait && !isNoSync && (
-              <a
-                href={`https://knowyourcat.id/address/${address}`}
-                className={styles.link}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                You can also mint your <span>Cheshire NFT</span>
-              </a>
-            )}
-          </>
-          {((isSync && notify) || error) && syncNotify()}
+            {isConnected && getRenderProvider()}
+          </div>
         </div>
-      )}
+        {!isNoTrait && !isNoSync && getRenderKyCatLink()}
+        {((isSync && notify) || error) && syncNotify()}
+      </div>
+      {/* )} */}
     </div>
   );
 }

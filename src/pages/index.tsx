@@ -1,3 +1,5 @@
+
+import React from 'react'
 import { ConnectKitButton } from 'connectkit'
 import { useAccount } from 'wagmi'
 import { useState } from 'react'
@@ -15,6 +17,34 @@ function Page() {
   const [showGate, setShowGate] = useState(false)
 
   const { isConnected } = useAccount()
+
+  const getRenderInputSection = () =>
+    <div className={styles.input_box}>
+      <input
+        className={styles.input}
+        placeholder='enter address'
+        autoFocus
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value.trim())
+        }}
+      ></input>
+      <button
+        className={styles.button}
+        disabled={loading}
+        onClick={() => {
+          if (value !== address) {
+            setLoading(true)
+            setAddress(value)
+            setShowGate(true)
+          }
+        }}
+      >
+        Check
+      </button>
+    </div>
+
+
   return (
     <div className={styles.container}>
 
@@ -31,49 +61,18 @@ function Page() {
 
       <main className={styles.main}>
 
-        <div className={styles.input_box}>
-          <input
-            className={styles.input}
-            placeholder='enter address'
-            autoFocus
-            value={value}
-            onChange={(e) => {
-              setValue(e.target.value.trim())
-            }}
-          ></input>
-          <button
-            className={styles.button}
-            disabled={loading}
-            onClick={() => {
-              if (value !== address) {
-                setLoading(true)
-                setAddress(value)
-                setShowGate(true)
-              }
-            }}
-          >
-            Check
-          </button>
-        </div>
+        {/* {getRenderInputSection()} */}
 
-        {/* {showGate
-          ? <BABTokenWeekGate
-            address={address}
-            loading={loading}
-            setLoading={setLoading} />
-          : null
-        } */}
         <BABTokenWeekGate
-          address={address}
+          checkAddress={address}
           loading={loading}
           setLoading={setLoading} />
 
       </main>
 
-      <footer className={styles.footer}>
+      {/* <footer className={styles.footer}>
         <ConnectKitButton />
-        {isConnected && <Account />}
-      </footer>
+      </footer> */}
     </div>
   )
 }
