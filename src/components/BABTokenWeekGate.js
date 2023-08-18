@@ -19,7 +19,7 @@ import skeletonData from "./skeletonData.json";
 const providersConstants = {
   BABT: {
     logo: logoBABT,
-    title: "Binance",
+    title: "BAB token",
     baseURL:
       "https://www.binance.com/en/support/faq/bacaf9595b52440ea2b023195ba4a09c",
     buttonsTitle: "Pass KYC on Binance",
