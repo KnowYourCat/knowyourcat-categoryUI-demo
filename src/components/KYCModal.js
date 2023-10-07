@@ -380,6 +380,33 @@ function KYCModal({ closeModal }) {
     );
   };
 
+  const ConnectButton = () => {
+    return (
+      <ConnectKitButton.Custom>
+        {({ show }) => {
+          return <MainButton onClick={show}>Connect wallet</MainButton>;
+        }}
+      </ConnectKitButton.Custom>
+    );
+  };
+
+  const Spinner = () => {
+    return (
+      <Oval
+        height={20}
+        width={20}
+        color="#ffffff"
+        wrapperStyle={{}}
+        wrapperClass="mint-spinner"
+        visible={true}
+        ariaLabel="oval-loading"
+        secondaryColor="#2A1B5B"
+        strokeWidth={4}
+        strokeWidthSecondary={5}
+      />
+    );
+  };
+
   if (isConfirm) {
     return (
       <Container style={{ width: "420px" }}>
@@ -395,7 +422,7 @@ function KYCModal({ closeModal }) {
         <Description>You can use your extended deposits limits</Description>
       </Container>
     );
-  }
+  };
 
   return (
     <Container>
@@ -437,9 +464,7 @@ function KYCModal({ closeModal }) {
 
       {!isConnected ? (
         <div>
-          <MainButton>
-            <ConnectKitButton />
-          </MainButton>
+          <ConnectButton />
         </div>
       ) : !showWarning ? (
         <MainButton
@@ -452,24 +477,11 @@ function KYCModal({ closeModal }) {
               : {}
           }
         >
-          {loading && (
-            <Oval
-              height={20}
-              width={20}
-              color="#ffffff"
-              wrapperStyle={{}}
-              wrapperClass="mint-spinner"
-              visible={true}
-              ariaLabel="oval-loading"
-              secondaryColor="#2A1B5B"
-              strokeWidth={4}
-              strokeWidthSecondary={5}
-            />
-          )}
-          {loading ? (
-            <span>Processing ...</span>
-          ) : (
+          {!loading && <Spinner />}
+          {!loading ? (
             "Get the human proof details"
+          ) : (
+            <span>Processing ...</span>
           )}
         </MainButton>
       ) : null}
