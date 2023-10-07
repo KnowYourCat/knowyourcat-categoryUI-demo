@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useAccount } from "wagmi";
-import { ConnectKitButton } from "connectkit";
+import { ConnectKitButton, Types } from "connectkit";
 import styled from "styled-components";
 import { Oval } from "react-loader-spinner";
 import Select from "react-select";
@@ -11,7 +11,8 @@ import iconClose from "../images/close.svg";
 import iconVerified from "../images/modal_status_verified.svg";
 import logoBABT from "../images/logoBab.svg";
 import logoRealT from "../images/logoRealt.svg";
-import logoGitcoin from "../images/logoGitcoin.svg";
+// import logoGitcoin from "../images/logoGitcoin.svg";
+import logoDefaultAvatar from "../images/avatar.svg";
 
 // Styles
 const Container = styled.div`
@@ -91,7 +92,8 @@ const StepperItem = styled.div`
     font-weight: 600;
     line-height: 24px;
   }
-  & p {
+  & p,
+  span {
     margin: 0;
     font-size: 12px;
     font-weight: 400;
@@ -244,7 +246,7 @@ function KYCModal({ closeModal }) {
   const [loading, setLoading] = useState(false);
   const [showWarning, setShowWarning] = useState(false);
 
-  const { isConnected, address } = useAccount();
+  const { isConnected, address, ensImage } = useAccount();
 
   const isConfirm = useMemo(
     () =>
@@ -275,7 +277,7 @@ function KYCModal({ closeModal }) {
     setShowWarning(true);
   };
 
-  const getRenderProgress = () => (
+  const ProgressSection = () => (
     <div>
       <ProgressMark
         style={
@@ -303,7 +305,7 @@ function KYCModal({ closeModal }) {
             : {}
         }
       >
-        {selectedCredential !== "Default" ? (
+        {isConnected && selectedCredential !== "Default" ? (
           <Image src={iconCheckMark} alt={"icon check mark"} />
         ) : (
           "2"
@@ -330,6 +332,46 @@ function KYCModal({ closeModal }) {
     </div>
   );
 
+  const AddressLabel = () => {
+    return (
+      <div style={{ display: "flex" }}>
+        {ensImage ? (
+          <Image src={ensImage} alt={"avatar"} />
+        ) : (
+          <Image src={logoDefaultAvatar} alt={"avatar"} />
+        )}
+        <span style={{ marginLeft: "10px" }}>{getShortAddress(address)}</span>
+      </div>
+    );
+  };
+
+  const StyledSelect = () => {
+    return (
+      <Select
+        styles={{
+          control: (baseStyles, state) => ({
+            ...baseStyles,
+            height: "40px",
+            paddingLeft: "4px",
+            borderRadius: "16px",
+            fontSize: "14px",
+          }),
+          indicatorSeparator: (baseStyles, state) => ({
+            ...baseStyles,
+            display: "none",
+          }),
+        }}
+        defaultValue={selectedCredential}
+        onChange={(option) => {
+          setSelectedCredential(option);
+          setShowWarning(false);
+        }}
+        options={credentialsEnum}
+        placeholder={"Select option"}
+      />
+    );
+  };
+
   const ConnectButton = () => {
     return (
       <ConnectKitButton.Custom>
@@ -354,6 +396,24 @@ function KYCModal({ closeModal }) {
         strokeWidth={4}
         strokeWidthSecondary={5}
       />
+    );
+  };
+
+  const ActionButton = () => {
+    return (
+      <MainButton
+        onClick={handlerGetProof}
+        style={
+          !isConnected || selectedCredential === "Default"
+            ? { opacity: "20%" }
+            : loading
+            ? { color: "#2A1B5B", backgroundColor: "#1643ce20" }
+            : {}
+        }
+      >
+        {loading && <Spinner />}
+        {!loading ? "Get the human proof details" : <span>Processing ...</span>}
+      </MainButton>
     );
   };
 
@@ -386,40 +446,15 @@ function KYCModal({ closeModal }) {
       </Description>
 
       <Stepper>
-        {getRenderProgress()}
+        <ProgressSection />
         <StepperRightSection>
           <StepperItem>
             <h2>Connect wallet</h2>
-            {isConnected ? (
-              <p>{getShortAddress(address)}</p>
-            ) : (
-              <p>Connect your wallet to ...</p>
-            )}
+            {isConnected ? <AddressLabel /> : <p>Connect your wallet to ...</p>}
           </StepperItem>
           <StepperItem style={!isConnected ? { opacity: "20%" } : {}}>
             <h2>Choose your credential option</h2>
-            <Select
-              styles={{
-                control: (baseStyles, state) => ({
-                  ...baseStyles,
-                  height: "40px",
-                  paddingLeft: "4px",
-                  borderRadius: "16px",
-                  fontSize: "14px",
-                }),
-                indicatorSeparator: (baseStyles, state) => ({
-                  ...baseStyles,
-                  display: "none",
-                }),
-              }}
-              defaultValue={selectedCredential}
-              onChange={(option) => {
-                setSelectedCredential(option);
-                setShowWarning(false);
-              }}
-              options={credentialsEnum}
-              placeholder={"Select option"}
-            />
+            <StyledSelect />
           </StepperItem>
           <StepperItem
             style={
@@ -434,30 +469,10 @@ function KYCModal({ closeModal }) {
       </Stepper>
 
       {!isConnected ? (
-        <div>
-          <ConnectButton />
-        </div>
+        <ConnectButton />
       ) : !showWarning ? (
-        <MainButton
-          onClick={handlerGetProof}
-          style={
-            !isConnected || selectedCredential === "Default"
-              ? { opacity: "20%" }
-              : loading
-              ? { color: "#2A1B5B", backgroundColor: "#1643ce20" }
-              : {}
-          }
-        >
-          {loading && <Spinner />}
-          {!loading ? (
-            "Get the human proof details"
-          ) : (
-            <span>Processing ...</span>
-          )}
-        </MainButton>
-      ) : null}
-
-      {showWarning && !isConfirm ? (
+        <ActionButton />
+      ) : !isConfirm ? (
         <Warning>{selectedCredential.warning}</Warning>
       ) : null}
     </Container>
