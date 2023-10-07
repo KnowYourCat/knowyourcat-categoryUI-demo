@@ -11,7 +11,12 @@ function App({ Component, pageProps }: AppProps) {
   React.useEffect(() => setMounted(true), [])
   return (
     <WagmiConfig client={client}>
-      <ConnectKitProvider>
+      <ConnectKitProvider
+        customTheme={{
+          "--ck-accent-color": "#ffffff",
+          "--ck-accent-text-color": "#ffffff",
+        }}
+      >
         <NextHead>
           <title>KNOWYOURCAT</title>
           <meta name="title" content="KnowYourCat ID | multichain NFT aggregator for you digital reputation"></meta>
